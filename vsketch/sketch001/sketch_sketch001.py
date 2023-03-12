@@ -1,6 +1,8 @@
 import vsketch
 import numpy as np
 import shapely 
+import random
+import itertools
 from functools import reduce
 
 """
@@ -37,7 +39,6 @@ class Sketch001(vsketch.SketchClass):
     padding = vsketch.Param(1, unit="mm")
     tile_rows = vsketch.Param(8)
     tile_cols = vsketch.Param(8)
-    attempts = vsketch.Param(1000)
 
     tiles: list[Tile] = []
     shapes: list[shapely.Polygon] = []
@@ -49,15 +50,19 @@ class Sketch001(vsketch.SketchClass):
         self.shapes = []
 
         min_x = self.margin + self.min_radius
-        max_x = vsk.width - self.min_radius - self.margin
+        max_x = int(vsk.width - self.min_radius - self.margin)
         min_y = self.margin + self.min_radius
-        max_y = vsk.height - self.min_radius - self.margin
+        max_y = int(vsk.height - self.min_radius - self.margin)
 
-        # Attempt to add "attempts" number of shapes
-        for _ in range(self.attempts):
-            self.grow_circle(vsk, vsk.random(min_x, max_x), vsk.random(min_y, max_y), self.min_radius)
+        x_coords = np.arange(min_x, max_x, 8)
+        y_coords = np.arange(min_y, max_y, 8)
+        all_coords = list(itertools.product(x_coords, y_coords))
+        random.shuffle(all_coords)
 
-        # Draw the shapes
+        for x, y in all_coords:
+            self.grow_circle(vsk, x, y, self.min_radius)
+
+        # Draw the circles
         for s in self.shapes:
             vsk.geometry(s)
 
